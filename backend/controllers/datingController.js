@@ -18,18 +18,22 @@ export const getAllUsers = async (req, res) => {
 
 export const getFilteredUsers = async (req, res) => {
   try {
-    const { state } = req.query;
-    const loggedInUser = await User.findById(req.user.id).select('gender').lean();
+    const { email, state } = req.query; 
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
 
+    const loggedInUser = await User.findOne({ email }).select('gender').lean();
     if (!loggedInUser) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const oppositeGender = loggedInUser.gender === 'male' ? 'female' : loggedInUser.gender === 'female' ? 'male' : null;
-    if (!oppositeGender) {
+    const { gender } = loggedInUser;
+    if (!gender || !['male', 'female'].includes(gender)) {
       return res.status(400).json({ message: 'User gender must be male or female for filtering' });
     }
 
+    const oppositeGender = gender === 'male' ? 'female' : 'male';
     const query = { gender: oppositeGender };
     if (state) {
       query.state = state;
@@ -42,7 +46,7 @@ export const getFilteredUsers = async (req, res) => {
     res.status(200).json({ data: users });
   } catch (error) {
     console.error('Error fetching filtered users:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
