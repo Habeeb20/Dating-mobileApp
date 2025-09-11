@@ -21,8 +21,8 @@ import { getDiscoverUsers,  likeUser,
 
 const router = express.Router()
 
-router.get('/', verifyToken, getAllUsers);
-router.get('/filtered', verifyToken, getFilteredUsers);
+router.get('/', getAllUsers);
+router.get('/filtered', getFilteredUsers);
 router.get('/discover', protect, getDiscoverUsers);
 router.post('/like/:userId', protect, likeUser);
 router.post('/pass/:userId', protect, passUser);

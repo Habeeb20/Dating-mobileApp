@@ -4,7 +4,6 @@ import Message from '../models/message.js';
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
-
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
@@ -46,9 +45,6 @@ export const getFilteredUsers = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-
-
 
 // // Register user
 // export const registerUser = async (req, res) => {
