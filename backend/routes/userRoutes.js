@@ -412,8 +412,8 @@ router.post('/phone', validatePhone, async (req, res) => {
 });
 
 // Step 4: Submit Profile
-router.post('/profile', validateProfile, validatePassword, async (req, res) => {
-  const { email, firstName, lastName, profilePicture, dateOfBirth, password } = req.body;
+router.post('/profile', validateProfile,  async (req, res) => {
+  const { email, firstName, lastName, profilePicture, dateOfBirth } = req.body;
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: 'User not found' });
@@ -422,7 +422,7 @@ router.post('/profile', validateProfile, validatePassword, async (req, res) => {
     user.lastName = lastName;
     user.profilePicture = profilePicture;
     user.dateOfBirth = new Date(dateOfBirth);
-    user.password = await bcrypt.hash(password, 10); // Hash password
+   
     await user.save();
 
     res.status(200).json({ message: 'Profile and password saved', nextStep: 'gender' });
