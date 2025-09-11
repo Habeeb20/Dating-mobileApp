@@ -368,3 +368,25 @@ export const getChatHistory = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+export const sendMessage = async (req, res) => {
+  const { friendId } = req.params;
+  const { message } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.friends.includes(friendId)) {
+      return res.status(400).json({ message: 'Not friends with this user' });
+    }
+    const newMessage = new Message({
+      sender: req.user.id,
+      recipient: friendId,
+      message,
+    });
+    await newMessage.save();
+    res.json({ message: 'Message sent', data: newMessage });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

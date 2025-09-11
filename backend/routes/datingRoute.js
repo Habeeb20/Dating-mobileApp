@@ -1,6 +1,6 @@
 import express from "express"
 import { verifyToken, protect } from "../middlewares/validation.js";
-import { getAllUsers, getFilteredUsers } from "../controllers/datingController.js";
+import { getAllUsers, getFilteredUsers, sendMessage } from "../controllers/datingController.js";
 import { getDiscoverUsers,  likeUser,
   passUser,
   addToFavorites,
@@ -24,11 +24,11 @@ const router = express.Router()
 router.get('/', getAllUsers);
 router.get('/filtered', getFilteredUsers);
 router.get('/discover', protect, getDiscoverUsers);
-router.post('/like/:userId', protect, likeUser);
-router.post('/pass/:userId', protect, passUser);
+router.post('/:userId/like', protect, likeUser);
+router.post('/:userId/pass', protect, passUser);
 router.post('/favorites/:userId', protect, addToFavorites);
-router.post('/accept/:userId', protect, acceptLike);
-router.post('/reject/:userId', protect, rejectLike);
+router.post('/:userId/accept', protect, acceptLike);
+router.post('/:userId/reject', protect, rejectLike);
 router.post('/unfriend/:userId', protect, unfriendUser);
 router.post('/compliment', protect, sendCompliment);
 router.get('/profile/:userId', protect, getUserProfile);
@@ -41,6 +41,9 @@ router.get('/friends', protect, getFriends);
 router.get('/compliments/sent', protect, getSentCompliments);
 router.get('/compliments/received', protect, getReceivedCompliments);
 router.get('/chat/:friendId', protect, getChatHistory);
+
+// Add to router
+router.post('/:friendId/chat', protect, sendMessage);
 
 
 export default router
