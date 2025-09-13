@@ -210,26 +210,7 @@ export const rejectLike = async (req, res) => {
   }
 };
 
-// Unfriend
-export const unfriendUser = async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const user = await User.findById(req.user.id);
-    const friend = await User.findById(userId);
 
-    if (!friend) return res.status(404).json({ message: 'Friend not found' });
-    if (!user.friends.includes(userId)) return res.status(400).json({ message: 'Not friends with this user' });
-
-    user.friends = user.friends.filter(id => id.toString() !== userId);
-    friend.friends = friend.friends.filter(id => id.toString() !== req.user.id.toString());
-    await user.save();
-    await friend.save();
-
-    res.json({ message: 'Unfriended successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 // Send compliment
 export const sendCompliment = async (req, res) => {
@@ -323,15 +304,6 @@ export const getLikedBy = async (req, res) => {
   }
 };
 
-// Get friends
-export const getFriends = async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).populate('friends', 'firstName lastName profilePicture');
-    res.json(user.friends);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 // Get sent compliments
 export const getSentCompliments = async (req, res) => {
@@ -348,6 +320,38 @@ export const getReceivedCompliments = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('receivedCompliments.sender', 'firstName lastName');
     res.json(user.receivedCompliments);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get friends
+export const getFriends = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate('friends', 'firstName lastName profilePicture age');
+    res.json(user.friends);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Unfriend
+export const unfriendUser = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await User.findById(req.user.id);
+    const friend = await User.findById(userId);
+
+    if (!friend) return res.status(404).json({ message: 'Friend not found' });
+    if (!user.friends.includes(userId)) return res.status(400).json({ message: 'Not friends with this user' });
+
+    user.friends = user.friends.filter(id => id.toString() !== userId);
+    friend.friends = friend.friends.filter(id => id.toString() !== req.user.id.toString());
+    await user.save();
+    await friend.save();
+
+    res.json({ message: 'Unfriended successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -382,10 +386,27 @@ export const sendMessage = async (req, res) => {
     const newMessage = new Message({
       sender: req.user.id,
       recipient: friendId,
-      message,
+      content: message,
     });
     await newMessage.save();
     res.json({ message: 'Message sent', data: newMessage });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+export const getUserByEmail = async (req, res) => {
+  const { email } = req.query;
+  try {
+    const user = await User.findOne({ email }).select('_id'); // Only return _id
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ userId: user._id });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

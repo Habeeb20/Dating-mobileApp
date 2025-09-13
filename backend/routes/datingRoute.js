@@ -1,6 +1,7 @@
+
 import express from "express"
 import { verifyToken, protect } from "../middlewares/validation.js";
-import { getAllUsers, getFilteredUsers, sendMessage } from "../controllers/datingController.js";
+import { getAllUsers, getFilteredUsers, getUserByEmail, sendMessage } from "../controllers/datingController.js";
 import { getDiscoverUsers,  likeUser,
   passUser,
   addToFavorites,
@@ -29,7 +30,7 @@ router.post('/:userId/pass', protect, passUser);
 router.post('/favorites/:userId', protect, addToFavorites);
 router.post('/:userId/accept', protect, acceptLike);
 router.post('/:userId/reject', protect, rejectLike);
-router.post('/unfriend/:userId', protect, unfriendUser);
+
 router.post('/compliment', protect, sendCompliment);
 router.get('/profile/:userId', protect, getUserProfile);
 router.get('/liked', protect, getLikedUsers);
@@ -37,13 +38,16 @@ router.get('/passed', protect, getPassedUsers);
 router.get('/favorites', protect, getFavorites);
 router.get('/visitors', protect, getVisitors);
 router.get('/liked-by', protect, getLikedBy);
-router.get('/friends', protect, getFriends);
+
 router.get('/compliments/sent', protect, getSentCompliments);
 router.get('/compliments/received', protect, getReceivedCompliments);
-router.get('/chat/:friendId', protect, getChatHistory);
+router.get('/friends', protect, getFriends);
+router.post('/unfriend/:userId', protect, unfriendUser);
+router.get('/:friendId/chat', protect, getChatHistory);
 
-// Add to router
+
 router.post('/:friendId/chat', protect, sendMessage);
+router.get('/user-by-email', getUserByEmail);
 
 
 export default router
