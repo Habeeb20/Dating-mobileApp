@@ -1,7 +1,7 @@
 
 import express from "express"
 import { verifyToken, protect } from "../middlewares/validation.js";
-import { getAllUsers, getFilteredUsers, getUserByEmail, sendMessage } from "../controllers/datingController.js";
+import { getAllUsers, getFilteredUsers, getUserByEmail, logProfileVisit, sendMessage, viewUserProfile } from "../controllers/datingController.js";
 import { getDiscoverUsers,  likeUser,
   passUser,
   addToFavorites,
@@ -48,6 +48,8 @@ router.get('/:friendId/chat', protect, getChatHistory);
 
 router.post('/:friendId/chat', protect, sendMessage);
 router.get('/user-by-email', getUserByEmail);
+router.get('/:id', protect, viewUserProfile);
+router.post('/visit', protect, logProfileVisit);
 
 
 export default router

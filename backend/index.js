@@ -8,7 +8,6 @@ import datingRouter from './routes/datingRoute.js';
 import setupSocket from './config/socketioSetup.js';
 import http from 'http';
 import { Server } from 'socket.io';
-
 dotenv.config();
 
 const app = express();

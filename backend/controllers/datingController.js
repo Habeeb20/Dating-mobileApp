@@ -287,13 +287,26 @@ export const getFavorites = async (req, res) => {
 // Get visitors
 export const getVisitors = async (req, res) => {
   try {
+    // Ensure the user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Find the logged-in user and populate visitors
     const user = await User.findById(req.user.id).populate('visitors', 'firstName lastName profilePicture');
-    res.json(user.visitors);
+
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return visitors (empty array if none)
+    res.status(200).json(user.visitors || []);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching visitors:', error);
+    res.status(500).json({ message: 'Server error while fetching visitors' });
   }
 };
-
 // Get liked by users
 export const getLikedBy = async (req, res) => {
   try {
@@ -409,5 +422,91 @@ export const getUserByEmail = async (req, res) => {
     res.json({ userId: user._id });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+
+// Controller to view a user's profile
+export const viewUserProfile = async (req, res) => {
+  try {
+    // Ensure the viewer is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const viewerId = req.user.id;
+    const profileId = req.params.id; // ID of the profile being viewed
+
+    // Prevent users from being recorded as visitors to their own profile
+    if (viewerId === profileId) {
+      return res.status(400).json({ message: 'Cannot visit your own profile' });
+    }
+
+    // Find the profile being viewed
+    const profileUser = await User.findById(profileId).select(
+      'firstName lastName profilePicture bio age gender interests'
+    );
+
+    if (!profileUser) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Add the viewer to the profile's visitors array (if not already present)
+    await User.findByIdAndUpdate(
+      profileId,
+      { $addToSet: { visitors: viewerId } }, // $addToSet prevents duplicates
+      { new: true }
+    );
+
+    // Return the profile data
+    res.status(200).json(profileUser);
+  } catch (error) {
+    console.error('Error viewing profile:', error);
+    res.status(500).json({ message: 'Server error while viewing profile' });
+  }
+};
+
+
+
+
+// Controller to log a profile visit and return profile data
+export const logProfileVisit = async (req, res) => {
+  try {
+    // Ensure the viewer is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const viewerId = req.user.id;
+    const profileId = req.body.profileId; // ID of the profile being viewed (passed in body)
+
+    // Prevent users from being recorded as visitors to their own profile
+    if (viewerId === profileId) {
+      return res.status(400).json({ message: 'Cannot visit your own profile' });
+    }
+
+    // Find the profile being viewed
+    const profileUser = await User.findById(profileId).select(
+      'firstName lastName profilePicture bio age gender interests'
+    );
+
+    if (!profileUser) {
+      return res.status(404).json({ message: 'Profile not found' });
+    }
+
+    // Add the viewer to the profile's visitors array (if not already present)
+    await User.findByIdAndUpdate(
+      profileId,
+      { $addToSet: { visitors: viewerId } }, // $addToSet prevents duplicates
+      { new: true }
+    );
+
+    // Return the profile data
+    res.status(200).json(profileUser);
+  } catch (error) {
+    console.error('Error logging profile visit:', error);
+    res.status(500).json({ message: 'Server error while logging profile visit' });
   }
 };
