@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
   gallery: [{ type: String }],
    likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users this user has liked
   passedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users this user has passed
-  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Favorite users
+  favorite: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Favorite users
+  
   visitors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who visited this profile
   likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Users who liked this user
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Accepted friends

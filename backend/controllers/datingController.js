@@ -510,3 +510,36 @@ export const logProfileVisit = async (req, res) => {
     res.status(500).json({ message: 'Server error while logging profile visit' });
   }
 };
+
+
+
+///get the favorite
+
+
+  export const createFavorite = async(req, res) => {
+    
+
+  try {
+  
+   const userId = req.user.id
+
+    const user = await User.findById(userId);
+    if (!user || userId === loggedInUserId) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+  
+    const favorite = await User.findOne({ user: loggedInUserId, favorite: userId });
+    if (favorite) {
+      return res.status(400).json({ message: 'User already favorited' });
+    }
+
+    // Create new favorite entry
+    await User.create({ user: loggedInUserId, favorite: userId });
+    res.status(200).json({ message: 'User added to favorites' });
+  } catch (error) {
+    console.error('Favorite error:', error);
+    res.status(500).json({ message: 'Server error while adding to favorites' });
+  }
+};
+
