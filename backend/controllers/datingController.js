@@ -547,13 +547,13 @@ export const logProfileVisit = async (req, res) => {
 
 
 export const getFavorite = async(req, res) => {
-  try {
-  
-    const loggedInUserId = req.user.id
+ try {
 
-    // Fetch all favorites for the logged-in user
-    const favorites = await User.find({ user: loggedInUserId }).populate('favorite');
-    const favoriteUsers = favorites.map(fav => fav.favorite); 
+    const loggedInUserId = req.user.id;
+
+    // Fetch all favorites for the logged-in user and populate the 'favorite' field
+    const favorites = await User.find({ user: loggedInUserId }).populate('favorite', 'firstName lastName profilePicture age state'); // Populate specific fields
+    const favoriteUsers = favorites.map(fav => fav.favorite); // Extract populated user objects
 
     res.status(200).json(favoriteUsers);
   } catch (error) {
