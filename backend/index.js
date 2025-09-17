@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import datingRouter from './routes/datingRoute.js';
+import postRouter from "./routes/postRoute.js";
 import setupSocket from './config/socketioSetup.js';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -36,6 +37,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/dating', datingRouter);
+app.use('/api/posts',postRouter);
 
 // Setup Socket.IO
 setupSocket(io);
