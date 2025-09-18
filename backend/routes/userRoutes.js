@@ -333,11 +333,11 @@
 import express from 'express';
 import { sendVerificationCode } from '../config/email.js';
 import User from '../models/userSchema.js';
-import { validateEmail, validateCode, validatePhone, validateProfile, validatePassword, verifyToken } from '../middlewares/validation.js';
+import { validateEmail, validateCode, validatePhone, validateProfile, validatePassword, verifyToken, protect } from '../middlewares/validation.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto'; // Added for randomInt in /notifications
-
+import { Follower } from '../models/post.js';
 const router = express.Router();
 
 // Step 1: Submit Email
@@ -607,5 +607,28 @@ router.put('/profile', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
+
+
+
+
+router.get('/:userId', protect, async (req, res) => {
+  const user = await User.findById(req.params.userId).select('-password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  res.json(user);
+});
+
+// Get followers of a user
+router.get('/:userId/followers', protect,async (req, res) => {
+  const followers = await Follower.find({ user: req.params.userId })
+    .populate('follower', 'firstName lastName profilePicture');
+  res.json(followers.map(f => f.follower));
+});
+
+
+
+
 
 export default router;

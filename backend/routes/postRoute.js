@@ -10,8 +10,12 @@ import { createPost, editPost,
   followUser,
   unfollowUser,
   sendBroadcastMessage,
-  getFeed, } from '../controllers/postController.js';
-import {protect} from "../middlewares/authMiddleware.js";
+  getFeed,
+  getUserById,
+  getFollowers,
+  getPost, } from '../controllers/postController.js';
+  import { protect } from '../middlewares/validation.js';
+
 const router = express.Router();
 
 // Post routes
@@ -33,5 +37,7 @@ router.post('/broadcast', protect, sendBroadcastMessage);
 
 // Feed route
 router.get('/feed', protect, getFeed);
+router.get('/:postId', protect, getPost);
+router.get('/:userId/followers', protect, getFollowers);
 
 export default router;

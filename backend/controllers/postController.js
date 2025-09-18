@@ -1,5 +1,5 @@
+import User from '../models/userSchema.js';
 
-import User from './User.js';
 import asyncHandler from 'express-async-handler';
 import { Post,ContentPreference, BroadcastMessage, Follower } from '../models/post.js';
 // Create a new post
@@ -76,9 +76,25 @@ const likePost = asyncHandler(async (req, res) => {
 });
 
 // Comment on a post
+// const commentOnPost = asyncHandler(async (req, res) => {
+//   const { postId } = req.params;
+//   const { content } = req.body;
+//   const post = await Post.findById(postId);
+//   if (!post) {
+//     res.status(404);
+//     throw new Error('Post not found');
+//   }
+//   post.comments.push({ author: req.user._id, content });
+//   await post.save();
+//   res.json(post);
+// });
 const commentOnPost = asyncHandler(async (req, res) => {
   const { postId } = req.params;
-  const { content } = req.body;
+  const { content } = req.body; // Expecting { content: string }
+  if (!content || typeof content !== 'string') {
+    res.status(400);
+    throw new Error('Comment content must be a non-empty string');
+  }
   const post = await Post.findById(postId);
   if (!post) {
     res.status(404);
@@ -86,7 +102,11 @@ const commentOnPost = asyncHandler(async (req, res) => {
   }
   post.comments.push({ author: req.user._id, content });
   await post.save();
-  res.json(post);
+  const updatedPost = await Post.findById(postId)
+    .populate('author', 'firstName lastName profilePicture')
+    .populate('tags', 'firstName lastName')
+    .populate('comments.author', 'firstName lastName');
+  res.json(updatedPost);
 });
 
 // Share a post
@@ -137,6 +157,21 @@ const trackPostView = asyncHandler(async (req, res) => {
   res.json(post);
 });
 
+const getPost = asyncHandler(async (req, res) => {
+  console.log(req.params.postId);
+  const post = await Post.findById(req.params.postId)
+    .populate('author', 'firstName lastName profilePicture')
+    .populate('tags', 'firstName lastName')
+    .populate('comments.author', 'firstName lastName');
+  if (!post) {
+    res.status(404);
+    throw new Error('Post not found');
+  }
+  res.json(post);
+});
+
+
+
 // Follow a user
 const followUser = asyncHandler(async (req, res) => {
   const { userId } = req.params;
@@ -180,6 +215,44 @@ const sendBroadcastMessage = asyncHandler(async (req, res) => {
 });
 
 // Get personalized feed
+
+// Helper function to update content preferences
+const updateContentPreferences = async (userId, categories) => {
+  if (!categories || !categories.length) return;
+  let preferences = await ContentPreference.findOne({ user: userId });
+  if (!preferences) {
+    preferences = new ContentPreference({ user: userId, viewedCategories: [] });
+  }
+  categories.forEach(category => {
+    const existing = preferences.viewedCategories.find(c => c.category === category);
+    if (existing) {
+      existing.count += 1;
+      existing.lastViewed = new Date();
+    } else {
+      preferences.viewedCategories.push({ category, count: 1, lastViewed: new Date() });
+    }
+  });
+  await preferences.save();
+};
+
+
+
+const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id || req.user.id).select('-password');
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  res.json(user);
+});
+
+const getFollowers = asyncHandler(async (req, res) => {
+  const followers = await Follower.find({ user: req.params.userId }).populate('follower', 'firstName lastName profilePicture');
+  res.json(followers.map(f => f.follower));
+});
+
+
+// controllers/postController.js
 const getFeed = asyncHandler(async (req, res) => {
   const followedUsers = await Follower.find({ follower: req.user._id }).select('user');
   const followedUserIds = followedUsers.map(f => f.user);
@@ -206,27 +279,11 @@ const getFeed = asyncHandler(async (req, res) => {
   res.json(posts);
 });
 
-// Helper function to update content preferences
-const updateContentPreferences = async (userId, categories) => {
-  if (!categories || !categories.length) return;
-  let preferences = await ContentPreference.findOne({ user: userId });
-  if (!preferences) {
-    preferences = new ContentPreference({ user: userId, viewedCategories: [] });
-  }
-  categories.forEach(category => {
-    const existing = preferences.viewedCategories.find(c => c.category === category);
-    if (existing) {
-      existing.count += 1;
-      existing.lastViewed = new Date();
-    } else {
-      preferences.viewedCategories.push({ category, count: 1, lastViewed: new Date() });
-    }
-  });
-  await preferences.save();
-};
+
 
 export {
   createPost,
+  getFeed,
   editPost,
   deletePost,
   likePost,
@@ -237,5 +294,7 @@ export {
   followUser,
   unfollowUser,
   sendBroadcastMessage,
-  getFeed,
+  getPost,
+  getUserById, 
+  getFollowers
 };
